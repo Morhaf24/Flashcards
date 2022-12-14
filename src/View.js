@@ -1,103 +1,108 @@
 const hh = require("hyperscript-helpers");
 const { h } = require("virtual-dom");
-import * as R from "ramda";
-const { showCardMassage, FrontSideInputMassage, backSideInputMassage, saveFrontSideMassage, deleteCardMassage } = require("./Update");
+const R = require('ramda');
+const { showFormMassage, frontInputMassage, backInputMassage, saveCardMassage, deleteCardMassage, showAnswer } = require("./Update.js");
 
-const buttonStyle = "bg-blue-400 hover:bg-black text-white font-bold py-2 px-2 rounded";
+const btnStyle = "bg-blue-500 hover:bg-black text-white font-bold py-2 px-4 rounded";
 
-const { div, button, form, label, input, thead, tbody, tr, th, td } = hh(h);
+const { div, button, form, label, input, table, tbody, tr, td, textarea } = hh(h);
 
 function cell(tag, className, value) {
   return tag({ className }, value);
 }
 
-const tableHeader = thead([tr([cell(th, "text-left text-red-900", "Cards")])]);
+function cardRow(dispatch, className, card) {
+  if (card.toogle == 0) {
+    return tr({ className: "text-left" }, [
+      div({className: "text-white w-80 h-80 bg-red-900 inline-block ml-2 text-ellipsis overflow-hidden"}, [
+      cell(td, "px-1 py-2 text-left font-bold ...", "Question"),
 
-function cardRow(dispatch, className, card, backSide) {
-  return div({ className: "w-60 h-60 bg-red-900 inline-block ml-2 text-ellipsis overflow-hidden" }, [
-    cell(td, "px-1 py-2", card.description),
-    cell(td, "px-1 py-2 text-right", [
-      button(
-        {
-          className: "bg-red-500 text-white hover:bg-black p-2 rounded",
-          onclick: () => dispatch(deleteCardMassage(card.id)),
-        },
-        "Delete"
-      ),
-    ]),
-    button(
-      { 
-        className: "hover:bg-black text-white text-sm underline ",
-        onclick: () => dispatch(backSideInputMassage(card.id))
-      },
-      "Show Answer"
-      ),
-    cell(td, "", [
-      button(
-        { 
-          className: "bg-red-500 hover:bg-black text-white font-bold py-1 px-1 rounded",
-          onclick: () => dispatch()
-        },
-        "Bad"
-      ),
-      button(
-        { 
-          className: "bg-blue-500 hover:bg-black text-white font-bold py-1 px-1 rounded ml-2",
-          onclick: () => dispatch()
-        },
-        "Good"
-      ),
-      button(
-        { 
+      cell(div, "px-1 py-2", card.description),
+      div({className:"hover:bg-black text-white text-sm underline", onclick: () => dispatch(showAnswer(card.id))}, "Show Answer"),
+      cell(div, "px-1 py-2 text-right", ""),
+  ]),
+  cell(td, "text-center", [button({
+    className: "bg-red-500 text-white hover:bg-BLACK p-2 rounded",
+    onclick: () => dispatch(deleteCardMassage(card.id)),
+  },
+  "Delete"
+  ),
+  ]),
+]);
+  } else if (card.toogle == 1) {
+    return tr({ className: "text-left" }, [
+      div({className: "w-80 h-80 bg-red-900 text-white inline-block ml-2 text-ellipsis overflow-hidden" }, [
+      cell(td, "px-1 py-2 text-left font-bold ...", "Question"),
+      div({className:"px-1 py-2 text-left", onclick: () => dispatch(showAnswer(card.id, card.answerStatus, 2)) }, card.description),
+      cell(div, "px-1 py-2 text-left font-bold ...", "Answer"),
+      div({className:"px-1 py-2 text-left", onclick: () => dispatch(showAnswer(card.id, card.answerStatus, 2)) }, card.back),
+      cell(td, "px-1 py-2 text-left font-bold ...", "Score: " + card.answerStatus),
+      div({className:"min-w-[100px] min-h-[50px]  text-[20px] ml-[50px]"},[ 
+        button({
           className: "bg-green-500 hover:bg-black text-white font-bold py-1 px-1 rounded ml-2",
-          onclick: () => dispatch()
-        },
-        "Great"
+          onclick: () => dispatch(showAnswer(card.id,"2"))
+        }, "Great"),
+        button({
+          className: "bg-blue-500 hover:bg-black text-white font-bold py-1 px-1 rounded ml-2",
+          onclick: () => dispatch(showAnswer(card.id,"1"))
+        }, "Good"),
+        button({
+          className: "bg-red-500 hover:bg-black text-white font-bold py-1 px-1 rounded ml-2",
+          onclick: () => dispatch(showAnswer(card.id,"0"))
+        }, "Bad"),
+      ]),
+      ]),
+      cell(td, "text-center", [button({
+        className: "bg-red-500 text-white hover:bg-black p-2 rounded",
+        onclick: () => dispatch(deleteCardMassage(card.id)),
+      },
+      "Delete"
       ),
-    ])
-  ]);
-}
-
-function backRow(dispatch, className, backSide) {
-  return div({ className: "w-60 h60 bg-red-900 inline-block ml-2 text-ellopsis overflow-hidden" }, [
-    cell(td, "px-1 py-2", backSide.backSide),
-    cell(td, "px-1 py-2 text-right", [
-      button(
-        {
-          className: "hover:bg-black p-2 rounded",
+      ]),
+    ]);
+  } 
+  return tr({ className: "text-left" }, [
+    div({className: "w-80 h-80 bg-red-900 inline-block ml-2 text-ellipsis overflow-hidden"}, [
+    cell(div, "px-1 py-2 text-left", "Frontcard"),
+    textarea({className:"px-1 py-2", onchange: (e) => dispatch(showAnswer(card.id, card.answerStatus, 1, e.target.value))}, card.description),
+    div({className:"px-1 py-2 text-left"}, "Backcard"),
+    textarea({className:"px-1 py-2", onchange: (e) => dispatch(showAnswer(card.id, card.answerStatus, 1, "", e.target.value))}, card.back),
+    cell(div, "px-1 py-2 text-left", "Answer: " + card.answerStatus),
+    div({className:""},[ 
+      button({
+        className: "bg-green-500 hover:bg-black text-white font-bold py-1 px-1 rounded ml-2",
+        onclick: () => dispatch(showAnswer(card.id,"2"))
+      }, "Great"),
+      button({
+        className: "bg-blue-500 hover:bg-black text-white font-bold py-1 px-1 rounded ml-2",
+        onclick: () => dispatch(showAnswer(card.id,"Ok 1"))
+      }, "Good"),
+      button({
+        className: "bg-red-500 hover:bg-black text-white font-bold py-1 px-1 rounded ml-2",
+        onclick: () => dispatch(showAnswer(card.id,"Bad 0"))
+      }, "Bad"),
+    ]),
+    ]),
+    cell(td, "text-center", [button({
+          className: "bg-red-900 text-white hover:bg-black p-2 rounded text-[50px]",
           onclick: () => dispatch(deleteCardMassage(card.id)),
         },
         "Delete"
       ),
     ]),
   ]);
-}
-
-
-function resulteRow(cards) {
-  const resulte = R.pipe(
-    R.map((card) => card.backSide),
-    R.sum
-  )(cards);
-  return tr({ className: "font-bold text-red-900" }, [cell(td, "", "Result"), cell(td, "", resulte), cell(td, "", "")]);
 }
 
 function cardsBody(dispatch, className, cards) {
-  const rows = R.map(R.partial(cardRow, [dispatch, "odd:bg-black even:bg-black"]), cards);
-
-  const rowsWithResult = [...rows, resulteRow(cards)];
-
-  return tbody({ className }, rowsWithResult);
+  const rows = R.map(R.partial(cardRow, [dispatch, "border-t-[20px] border-b-[20px] border-transparent"]), cards);
+  return tbody({ className }, rows);
 }
 
 function tableView(dispatch, cards) {
   if (cards.length === 0) {
-    return div({ className: "pt-8 text-center" }, "No Flashcards yet! ");
+    return div({ className: "pt-8 text-center text-red-900" }, "No Cards yet!");
   }
-  return div({className: "" }, [
-    tableHeader,
-    cardsBody(dispatch, "", cards)
-  ]);
+  return table({ className: "mt-4" }, [cardsBody(dispatch, "", cards)]);
 }
 
 function fieldSet(labelText, inputValue, placeholder, oninput) {
@@ -117,16 +122,16 @@ function buttonSet(dispatch) {
   return div({ className: "flex gap-4 justify-end" }, [
     button(
       {
-        className: `${buttonStyle} bg-green-500 hover:bg-black`,
+        className: `${btnStyle} bg-green-500 hover:bg-black`,
         type: "submit",
       },
       "Save"
     ),
     button(
       {
-        className: `${buttonStyle} bg-red-500 hover:bg-black`,
+        className: `${btnStyle} bg-red-500 hover:bg-black`,
         type: "button",
-        onclick: () => dispatch(showCardMassage(false)),
+        onclick: () => dispatch(showFormMassage(false)),
       },
       "Cancel"
     ),
@@ -134,31 +139,30 @@ function buttonSet(dispatch) {
 }
 
 function formView(dispatch, model) {
-  const { description, backSide, showCard } = model;
-  if (showCard) {
+  const { description, back, showForm } = model;
+  if (showForm) {
     return form(
       {
         className: "flex flex-col gap-4",
         onsubmit: (e) => {
           e.preventDefault();
-          dispatch(saveFrontSideMassage);
+          dispatch(saveCardMassage);
         },
       },
       [
-        div({ className: "flex gap-4 " }, [
-          fieldSet("Frontsidecard", description, "Enter Frontcard text...", (e) => dispatch(FrontSideInputMassage(e.target.value))),
-          fieldSet("backsidecard", backSide || "", "Enter backSidecard text...", (e) => dispatch(backSideInputMassage(e.target.value))),
+        div({ className: "flex gap-4" }, [
+          fieldSet("Frontcard", description, "Add Frontcard text...", (e) => dispatch(frontInputMassage(e.target.value))),
+          fieldSet("Backcard", back || "", "Add Backcard text...", (e) => dispatch(backInputMassage(e.target.value))),
         ]),
         buttonSet(dispatch),
       ]
     );
   }
-  return button(
-    {
-      className: `${buttonStyle} max-w-xs`,
-      onclick: () => dispatch(showCardMassage(true)),
+  return button({
+      className: `${btnStyle} max-w-xs ml-[170px]`,
+      onclick: () => dispatch(showFormMassage(true)),
     },
-    "New flashcard"
+    "New Card"
   );
 }
 
@@ -166,4 +170,4 @@ function view(dispatch, model) {
   return div({ className: "flex flex-col" }, [formView(dispatch, model), tableView(dispatch, model.cards)]);
 }
 
-export default view;
+module.exports = {view, tableView};

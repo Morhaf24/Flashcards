@@ -1,94 +1,153 @@
-import * as R from 'ramda';
+const R = require('ramda');
 
-const massages = {
-    SHOW_CARD: 'SHOW_CARD',
-    FRONTSIDE_INPUT: 'FRONTSIDE_INPUT',
-    BACKSIDE_INPUT: 'BACKSIDE_INPUT',
-    FRONTSIDE_SAVE: 'FRONTSIDE_SAVE',
-    BACKSIDE_SAVE: 'BACKSIDE_SAVE',
-    UPDATE_CARD: 'UPDATE_CARD',
-    DELETE_CARD: 'DELETE_CARD'
+const MASSAGES = {
+  SHOW_FORM: 'SHOW_FORM',
+  description_INPUT: 'description_INPUT',
+  ANSWER_INPUT: 'ANSWER_INPUT',
+  SAVE_CARD: 'SAVE_CARD',
+  DELETE_CARD: 'DELETE_CARD',
+  ANSWER_SHOW: 'ANSWER_SHOW'
 };
 
-export function showCardMassage(showCard) {
-    return{
-        type: massages.SHOW_CARD,
-        showCard,
-    };
+function showFormMassage(showForm) {
+  return {
+    type: MASSAGES.SHOW_FORM,
+    showForm,
+  };
 }
 
-export function FrontSideInputMassage(description) {
-    return{
-        type: massages.FRONTSIDE_INPUT,
-        description
-    };
+function frontInputMassage(description) {
+  return {
+    type: MASSAGES.description_INPUT,
+    description,
+  };
 }
 
-export function backSideInputMassage(backSide) {
-    return{
-        type: massages.BACKSIDE_INPUT,
-        backSide
-    };
+function backInputMassage(back) {
+  return {
+    type: MASSAGES.ANSWER_INPUT,
+    back,
+  };
 }
 
-export const saveFrontSideMassage = { type: massages.FRONTSIDE_SAVE };
-export const saveBackSideMassage = { type: massages.BACKSIDE_SAVE };
+const saveCardMassage = { type: MASSAGES.SAVE_CARD };
 
-export function  deletCardMassage(id) {
+function deleteCardMassage(id) {
+  return {
+    type: MASSAGES.DELETE_CARD,
+    id,
+  };
+}
+
+function showAnswer(id, showAnswer = "", changeTextStatus = 1, changeddescription = "", changedAnswer = "") {
+  if (changedAnswer=== "") {
     return {
-        type: massages.DELETE_CARD,
-        id
+      type: MASSAGES.ANSWER_SHOW,
+      id,
+      showAnswer,
+      changeTextStatus,
+      changedValue: changeddescription,
+      changeType: 1
     };
+  } 
+  return {
+    type: MASSAGES.ANSWER_SHOW,
+    id,
+    showAnswer,
+    changeTextStatus,
+    changedValue: changedAnswer,
+    changeType: 2
+  };
 }
 
 function update(massage, model) {
-    switch (massage.type) {
-        case massages.SHOW_CARD: {
-            const { showCard } = massage;
-            return { ...model, showCard, description: '' };
-        }
-        case massages.FRONTSIDE_INPUT: {
-            const { description } = massage;
-            return { ...model, description };
-        }
-        case massages.BACKSIDE_INPUT: {
-            const { backSide } = massage;
-            return { ...model, backSide };
-        }
-        case massages.FRONTSIDE_SAVE: {
-            const { updateModel } = add(massage, model);
-            return updateModel;
-        }
-        case massages.BACKSIDE_SAVE: {
-            const { updateModel } = add(massage, model);
-            return updateModel;
-        }
-        case massages.DELETE_CARD: {
-            const { id } = massage;
-            const cards = R.filter( card => card.id !== id, model.cards); 
-            return { ...model, cards };
-        }
-        case massages.UPDATE_CARD: {
-            const { description } = massage;
-            return { ...model, description };
-        }
+  switch (massage.type) {
+    case MASSAGES.ANSWER_SHOW: {
+      const id = massage.id ;
+
+      const estimateData = massage.showAnswer;
+      const estimate = estimateData.split(' ');
+      const estimateText = estimate[0];
+      const estimatescore = estimate[1];
+
+      const toogle = massage.changeTextStatus;
+      const neuValue = massage.changedValue;
+      const oneCard = R.filter(
+        card => card.id == id
+      , model.cards);
+      if (neuValue === "") {
+        const card = {id:oneCard[oneCard.length - 1].id + 1, description:oneCard[0].description, back:oneCard[0].back, toogle: toogle, answerStatus: estimateText, score: estimatescore};
+        const cards = [...model.cards, card]
+        return {...model, cards, nextId: card.id, description: '',
+        back: 0,
+        showForm: false,
+        toogle: toogle,
+        answerStatus: ""
+        };
+      } else if (massage.changeType == 1) {
+        const card = {id:oneCard[oneCard.length - 1].id + 1, description:neuValue, back:oneCard[0].back, toogle: toogle, answerStatus: estimateText, score: estimatescore};
+        const cards = [...model.cards, card]
+        console.log(cards);
+        return {...model, cards, nextId: card.id, description: '',
+        back: 0,
+        showForm: false,
+        toogle: toogle,
+        answerStatus: ""
+        };
+      }
+      const card = {id:oneCard[oneCard.length - 1].id + 1, description:oneCard[0].description, back:neuValue, toogle: toogle, answerStatus: estimateText, score: estimatescore};
+      const cards = [...model.cards, card]
+      console.log(cards);
+      return {...model, cards, nextId: card.id, description: '',
+      back: 0,
+      showForm: false,
+      toogle: toogle,
+      answerStatus: ""
+      };
     }
-    return model;
+    case MASSAGES.SHOW_FORM: {
+      const { showForm } = massage;
+      return { ...model, showForm, description: '', back: 0 };
+    }
+    case MASSAGES.description_INPUT: {
+      const { description } = massage;
+      return { ...model, description };
+    }
+    case MASSAGES.ANSWER_INPUT: {
+      const back = R.pipe( 
+        R.defaultTo(0),
+      )(massage.back);
+      return { ...model, back };
+    }
+    case MASSAGES.SAVE_CARD: {
+      const updatedModel = add(model);
+      return updatedModel;
+    }
+    case MASSAGES.DELETE_CARD: {
+      const { id } = massage;
+      const cards = R.filter(
+        card => card.id !== id
+      , model.cards);
+      return { ...model, cards };
+    }
+  }
+  return model;
 }
 
-function add(massage, model) {
-    const { nextId, description, backSide } = model;
-    const card = { id: nextId, description, backSide };
-    const cards = [ ...model.cards, card ]
-    return {
-        ...model,
-        cards,
-        nextId: nextId + 1,
-        description: '',
-        backSide: '',
-        showCard: false
-    };
+function add(model) {
+  const { nextId, description, back, toogle } = model;
+  const card = { id: nextId + 1, description, back, toogle:0};
+  const cards = [...model.cards, card]
+  return {
+    ...model,
+    cards,
+    nextId: nextId + 1,
+    description: '',
+    back: 0,
+    showForm: false,
+    toogle: 0,
+    score: 0
+  };
 }
 
-export default update;
-
+module.exports = {update, MASSAGES, add, showFormMassage, frontInputMassage, backInputMassage, saveCardMassage, deleteCardMassage, showAnswer};

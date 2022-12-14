@@ -1,15 +1,13 @@
-
 const initModel = {
   description: '',
-  backSide: '',
+  back: 0,
   showForm: false,
-  nextId: 3,
+  nextId: 1,
   editId: null,
-  cards: [{
-    id: 1,
-    description: 'Hallo',
-    backSide: 'Hello'
-  }],
+  cards: [],
+  toogle: 0,
+  answerStatus: "",
+  score: 0
 };
 
-export default initModel;
+module.exports = { initModel };

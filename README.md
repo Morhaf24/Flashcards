@@ -1,9 +1,15 @@
-https://github.com/SwitzerChees/modul323-caloriecounter 
-(https://github.com/SwitzerChees/modul323-time)
+# Flashcard APP
+Dies ist ein Projekt für das Modul 323 (Funktional Programmierung)
+## Quellen
 
-CSS: https://tailwindcss.com/
+[dispatch bei Update](https://github.com/SwitzerChees/modul323-time)
 
-Die alten Aufgaben/Lösungen als Hilfsmittel gebraucht.
-Hilfe von Herr Patrick Michel bekommen.
-Zussamen mit Mouayad Alnhlawe gearbeitet.
+[Calorien Counter](https://github.com/SwitzerChees/modul323-caloriecounter)
 
+[Taindwind CSS](https://tailwindcss.com/)
+
+## Wie geht Edit
+Man sollte 2 mal auf antwort oder Frage drücken, so kann man ed editieren
+
+### Zusammen gearbeitet mit:
+* Mouayad Alnhlawe
